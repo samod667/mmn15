@@ -8,21 +8,17 @@ public class IntNode {
         _next = null;
     }
 
-    public IntNode(long num){
-
-    }
-
     public IntNode(int val, IntNode next){
         _value = val;
         _next = next;
     }
 
-    public int getValue(){
+    public long getValue(){
         return _value;
     }
 
-    public void setValue(int v){
-        _value = v;
+    public void setValue(int value){
+        _value = value;
     }
 
     public IntNode getNext(){
