@@ -36,22 +36,24 @@ public class Driver {
 //
 //        System.out.println("\n************************ MMN 15 TEST END **************************");
 
-        BigNumber big1 = new BigNumber();
-
-        System.out.println(big1);
+//        BigNumber big1 = new BigNumber();
+//
+//        System.out.println(big1);
 
         System.out.println("---------");
 
-       long longNum = 12345;
+       long longNum = 55555;
+       long longNum2 = 9990;
 
         BigNumber big2 = new BigNumber(longNum);
+        BigNumber big3 = new BigNumber(longNum2);
+//        System.out.println(big2);
 
-        System.out.println(big2);
+//        System.out.println(big2.addBigNumber(big3));
+        System.out.println(big3);
+        BigNumber big4 = new BigNumber(big3);
 
-
-
-
-
+        System.out.println(big4);
 
     }
 }

@@ -13,7 +13,7 @@ public class IntNode {
         _next = next;
     }
 
-    public long getValue(){
+    public int getValue(){
         return _value;
     }
 
