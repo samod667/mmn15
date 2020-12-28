@@ -1,9 +1,10 @@
 public class BigNumber {
 
     private IntNode _head;
+    private IntNode _tail;
 
     private boolean empty() {
-        return length() == 0;
+        return this._head == null;
     }
 
     private void printList() {
@@ -13,6 +14,7 @@ public class BigNumber {
             System.out.print(ptr.getValue());
             ptr = ptr.getNext();
         }
+        System.out.println("");
     }
 
     private void removeZero() {
@@ -31,10 +33,6 @@ public class BigNumber {
         return res;
     }
 
-    private IntNode nextNode(IntNode node) {
-        return node.getNext();
-    }
-
     private int length() {
         IntNode ptr = _head;
         int res = 0;
@@ -45,16 +43,27 @@ public class BigNumber {
         return res;
     }
 
-    private void addToBigNumber(int num) {
+    private int numOfDigits(long num) {
+        if (num == 0) {
+            return 0;
+        }
+        return 1 + numOfDigits(num / 10);
+    }
+
+    private void addToNextFreeSlot(int num) {
         IntNode newItem = new IntNode(num);
         if (empty()) {
-            this._head = new IntNode(num);
+            this._head = newItem;
+            this._tail = this._head;
         } else {
-            IntNode ptr = _head;
-            while (ptr.getNext() != null) {
-                ptr = ptr.getNext();
-            }
-            ptr.setNext(newItem);
+//            IntNode ptr = this._head;
+//            while (ptr.getNext() != null) {
+//                ptr = ptr.getNext();
+//            }
+//            ptr.setNext(newItem);
+
+            _tail.setNext(newItem);
+            _tail = _tail.getNext();
         }
     }
 
@@ -70,26 +79,21 @@ public class BigNumber {
 
     public BigNumber() {
         this._head = new IntNode(0);
+        this._tail = _head;
     }
 
     public BigNumber(long num) {
         while (num > 0) {
-            int lastDigit = (int) (num % 10);
-            addToBigNumber(lastDigit);
+            addToNextFreeSlot((int) (num % 10));
             num /= 10;
         }
     }
 
-    public BigNumber(BigNumber other){
-        this._head = new IntNode(other._head.getValue());
-
+    public BigNumber(BigNumber other) {
         IntNode ptr = other._head;
-        IntNode ptr2 = this._head;
-
-        while(ptr != null){
-            ptr2 = new IntNode(ptr.getValue());
+        while (ptr != null) {
+            addToNextFreeSlot(ptr.getValue());
             ptr = ptr.getNext();
-            ptr2 = ptr2.getNext();
         }
     }
 
@@ -119,35 +123,57 @@ public class BigNumber {
 
     /// O(n)
     public BigNumber addBigNumber(BigNumber other) {
-        IntNode ptr = this._head, ptr2 = other._head;
+        BigNumber thisCopy = new BigNumber(this);
+        BigNumber otherCopy = new BigNumber(other);
+
+        IntNode ptr = thisCopy._head, ptr2 = otherCopy._head;
+
         BigNumber res = new BigNumber();
         res.removeZero();
-        if (other.length() > this.length()) {
-            ptr = other._head;
-            ptr2 = this._head;
+
+        if (other.compareTo(this) == 1) {
+            ptr = otherCopy._head;
+            ptr2 = thisCopy._head;
         }
         while (ptr != null) {
             while (ptr2 != null) {
                 if (ptr.getValue() + ptr2.getValue() >= 10 && ptr.getNext() != null) {
-                    res.addToBigNumber((ptr.getValue() + ptr2.getValue()) % 10);
+                    res.addToNextFreeSlot((ptr.getValue() + ptr2.getValue()) % 10);
                     ptr.getNext().setValue(ptr.getNext().getValue() + 1);
                 } else {
-                    res.addToBigNumber(ptr.getValue() + ptr2.getValue());
+                    res.addToNextFreeSlot(ptr.getValue() + ptr2.getValue());
                 }
                 ptr = ptr.getNext();
                 ptr2 = ptr2.getNext();
             }
             if (ptr != null) {
                 if (ptr.getValue() >= 10 && ptr.getNext() != null) {
-                    res.addToBigNumber(ptr.getValue() % 10);
+                    res.addToNextFreeSlot(ptr.getValue() % 10);
                     ptr.getNext().setValue(ptr.getNext().getValue() + 1);
                 } else {
-                    res.addToBigNumber(ptr.getValue());
+                    res.addToNextFreeSlot(ptr.getValue());
                 }
                 ptr = ptr.getNext();
             }
         }
         return res;
+    }
+
+    /// O(n)
+    public BigNumber addLong(long num) {
+        BigNumber temp = new BigNumber(num);
+        return this.addBigNumber(temp);
+    }
+
+    public BigNumber subtractBigNumber(BigNumber other) {
+        IntNode ptr = this._head, ptr2 = other._head;
+        BigNumber res = new BigNumber();
+        res.removeZero();
+        if (other.compareTo(this) == 1) {
+            ptr = other._head;
+            ptr2 = this._head;
+        }
+        return null;
     }
 }
 
