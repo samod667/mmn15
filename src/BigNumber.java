@@ -17,9 +17,67 @@ public class BigNumber {
         System.out.println("");
     }
 
-    private void removeZero() {
+    private void removeZeroFromStart() {
         this._head = null;
     }
+
+    private void removeZeroFromEnd() {
+        IntNode ptr = this._tail;
+
+        do{
+            IntNode temp = this._head;
+            while(temp.getNext() != ptr){
+                temp = temp.getNext();
+            }
+            ptr = temp;
+            ptr.setNext(null);
+        }while(ptr.getValue() != 0);
+
+    }
+
+    private void subtractionBorrowing(IntNode node) {
+        subtractionBorrowing(node, 0);
+    }
+
+    private void subtractionBorrowing(IntNode node, int count) {
+        if (node.getValue() != 0) {
+            node.setValue(node.getValue() - 1);
+            return;
+        }
+        node.setValue(node.getValue() + 10);
+        subtractionBorrowing(node.getNext(), ++count);
+        node.setValue(node.getValue() - count);
+    }
+
+    private int whoIsBigger(BigNumber big1, BigNumber big2) {
+        IntNode ptr1 = big1._tail, ptr2 = big2._tail;
+
+        do {
+            if (ptr1.getValue() > ptr2.getValue()) {
+                return 1;
+            } else if (ptr2.getValue() > ptr1.getValue()) {
+                return 2;
+            } else {
+                IntNode temp1 = big1._head;
+                IntNode temp2 = big2._head;
+
+                while (temp1.getNext() != ptr1 && temp2.getNext() != ptr2) {
+                    temp1 = temp1.getNext();
+                    temp2 = temp2.getNext();
+                }
+                ptr1 = temp1;
+                ptr2 = temp2;
+            }
+        } while (ptr1 != big1._head && ptr2 != big2._head);
+
+        if (ptr1.getValue() > ptr2.getValue()) {
+            return 1;
+        } else if (ptr2.getValue() > ptr1.getValue()) {
+            return 2;
+        }
+        return 0;
+    }
+
 
     private int sumOfDigits() {
         IntNode ptr = _head;
@@ -111,9 +169,9 @@ public class BigNumber {
         } else if (this.length() < other.length()) {
             return -1;
         } else {
-            if (this.sumOfDigits() > other.sumOfDigits()) {
+            if (whoIsBigger(this, other) == 1) {
                 return 1;
-            } else if (this.sumOfDigits() < other.sumOfDigits()) {
+            } else if (whoIsBigger(this, other) == 2) {
                 return -1;
             } else {
                 return 0;
@@ -126,34 +184,34 @@ public class BigNumber {
         BigNumber thisCopy = new BigNumber(this);
         BigNumber otherCopy = new BigNumber(other);
 
-        IntNode ptr = thisCopy._head, ptr2 = otherCopy._head;
+        IntNode thisPtr = thisCopy._head, otherPtr = otherCopy._head;
 
         BigNumber res = new BigNumber();
-        res.removeZero();
+        res.removeZeroFromStart();
 
-        if (other.compareTo(this) == 1) {
-            ptr = otherCopy._head;
-            ptr2 = thisCopy._head;
+        if (other.length() > this.length()) {
+            thisPtr = otherCopy._head;
+            otherPtr = thisCopy._head;
         }
-        while (ptr != null) {
-            while (ptr2 != null) {
-                if (ptr.getValue() + ptr2.getValue() >= 10 && ptr.getNext() != null) {
-                    res.addToNextFreeSlot((ptr.getValue() + ptr2.getValue()) % 10);
-                    ptr.getNext().setValue(ptr.getNext().getValue() + 1);
+        while (thisPtr != null) {
+            while (otherPtr != null) {
+                if (thisPtr.getValue() + otherPtr.getValue() >= 10 && thisPtr.getNext() != null) {
+                    res.addToNextFreeSlot((thisPtr.getValue() + otherPtr.getValue()) % 10);
+                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
                 } else {
-                    res.addToNextFreeSlot(ptr.getValue() + ptr2.getValue());
+                    res.addToNextFreeSlot(thisPtr.getValue() + otherPtr.getValue());
                 }
-                ptr = ptr.getNext();
-                ptr2 = ptr2.getNext();
+                thisPtr = thisPtr.getNext();
+                otherPtr = otherPtr.getNext();
             }
-            if (ptr != null) {
-                if (ptr.getValue() >= 10 && ptr.getNext() != null) {
-                    res.addToNextFreeSlot(ptr.getValue() % 10);
-                    ptr.getNext().setValue(ptr.getNext().getValue() + 1);
+            if (thisPtr != null) {
+                if (thisPtr.getValue() >= 10 && thisPtr.getNext() != null) {
+                    res.addToNextFreeSlot(thisPtr.getValue() % 10);
+                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
                 } else {
-                    res.addToNextFreeSlot(ptr.getValue());
+                    res.addToNextFreeSlot(thisPtr.getValue());
                 }
-                ptr = ptr.getNext();
+                thisPtr = thisPtr.getNext();
             }
         }
         return res;
@@ -166,14 +224,46 @@ public class BigNumber {
     }
 
     public BigNumber subtractBigNumber(BigNumber other) {
-        IntNode ptr = this._head, ptr2 = other._head;
+        BigNumber thisCopy = new BigNumber(this);
+        BigNumber otherCopy = new BigNumber(other);
+
+        IntNode thisPtr = thisCopy._head, otherPtr = otherCopy._head;
+
         BigNumber res = new BigNumber();
-        res.removeZero();
+
+
         if (other.compareTo(this) == 1) {
-            ptr = other._head;
-            ptr2 = this._head;
+            thisPtr = otherCopy._head;
+            otherPtr = thisCopy._head;
+        } else if (other.compareTo(this) == 0) {
+            return res;
         }
-        return null;
+
+        res.removeZeroFromStart();
+
+        while (thisPtr != null) {
+            while (otherPtr != null) {
+                if (thisPtr.getValue() - otherPtr.getValue() < 0) {
+                    thisPtr.setValue(thisPtr.getValue() + 10);
+                    ///Borrowing :)
+                    IntNode temp = thisPtr.getNext();
+                    subtractionBorrowing(temp);
+                }
+                res.addToNextFreeSlot(thisPtr.getValue() - otherPtr.getValue());
+                thisPtr = thisPtr.getNext();
+                otherPtr = otherPtr.getNext();
+            }
+            if (thisPtr != null) {
+                res.addToNextFreeSlot(thisPtr.getValue());
+                thisPtr = thisPtr.getNext();
+            }
+        }
+
+        if(res._tail.getValue() == 0){
+            ///REMOVE ZEROS FROM TAIL
+            res.removeZeroFromEnd();
+        }
+        return res;
     }
 }
 

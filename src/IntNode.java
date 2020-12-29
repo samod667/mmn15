@@ -1,31 +1,25 @@
 public class IntNode {
     private int _value;
-
     private IntNode _next;
 
     public IntNode(int val){
-        _value = val;
-        _next = null;
-    }
-
-    public IntNode(int val, IntNode next){
-        _value = val;
-        _next = next;
+        this._value = val;
+        this._next = null;
     }
 
     public int getValue(){
-        return _value;
+        return this._value;
     }
 
     public void setValue(int value){
-        _value = value;
+        this._value = value;
     }
 
     public IntNode getNext(){
-        return _next;
+        return this._next;
     }
 
     public void setNext(IntNode node){
-        _next = node;
+        this._next = node;
     }
 }
