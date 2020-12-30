@@ -21,18 +21,18 @@ public class BigNumber {
         this._head = null;
     }
 
-    private void removeZeroFromEnd() {
-        IntNode ptr = this._tail;
+    private void trimZeros(IntNode node) {
+        while(node.getValue() == 0){
+            IntNode temp = predecessor(node);
+            removeFromEnd(node);
+            node = temp;
+        }
+    }
 
-        do{
-            IntNode temp = this._head;
-            while(temp.getNext() != ptr){
-                temp = temp.getNext();
-            }
-            ptr = temp;
-            ptr.setNext(null);
-        }while(ptr.getValue() != 0);
+    private void removeFromEnd(IntNode node){
+        this._tail = predecessor(node);
 
+        _tail.setNext(null);
     }
 
     private void subtractionBorrowing(IntNode node) {
@@ -40,8 +40,9 @@ public class BigNumber {
     }
 
     private void subtractionBorrowing(IntNode node, int count) {
-        if (node.getValue() != 0) {
-            node.setValue(node.getValue() - 1);
+        if(node.getNext().getValue() > 0 || node.getNext() != null){
+            node.getNext().setValue(node.getNext().getValue() - 1);
+            node.setValue(node.getValue() + 10);
             return;
         }
         node.setValue(node.getValue() + 10);
@@ -78,6 +79,22 @@ public class BigNumber {
         return 0;
     }
 
+    public IntNode predecessor(IntNode node) {
+        if(_head == null || _head == node) {
+            return null;
+        }
+
+        IntNode backPtr = _head;
+
+        while(backPtr.getNext() != null) {
+            if(backPtr.getNext() == node) {
+                return backPtr;
+            } else {
+                backPtr = backPtr.getNext();
+            }
+        }
+        return null;
+    }
 
     private int sumOfDigits() {
         IntNode ptr = _head;
@@ -241,28 +258,26 @@ public class BigNumber {
 
         res.removeZeroFromStart();
 
-        while (thisPtr != null) {
-            while (otherPtr != null) {
-                if (thisPtr.getValue() - otherPtr.getValue() < 0) {
-                    thisPtr.setValue(thisPtr.getValue() + 10);
-                    ///Borrowing :)
-                    IntNode temp = thisPtr.getNext();
-                    subtractionBorrowing(temp);
+        while(thisPtr != null){
+            while(otherPtr != null){
+                int subtractionRes = thisPtr.getValue() - otherPtr.getValue();
+                if(subtractionRes < 0){
+                    subtractionBorrowing(thisPtr);
+                    subtractionRes = thisPtr.getValue() - otherPtr.getValue();
                 }
-                res.addToNextFreeSlot(thisPtr.getValue() - otherPtr.getValue());
+                res.addToNextFreeSlot(subtractionRes);
                 thisPtr = thisPtr.getNext();
                 otherPtr = otherPtr.getNext();
             }
-            if (thisPtr != null) {
+            if(thisPtr != null){
                 res.addToNextFreeSlot(thisPtr.getValue());
                 thisPtr = thisPtr.getNext();
             }
         }
 
-        if(res._tail.getValue() == 0){
-            ///REMOVE ZEROS FROM TAIL
-            res.removeZeroFromEnd();
-        }
+        ///TRIM ZEROS
+        res.trimZeros(res._tail);
+
         return res;
     }
 }
