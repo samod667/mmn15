@@ -21,91 +21,103 @@ public class BigNumber {
         this._head = null;
     }
 
-    private void trimZeros(IntNode node) {
-        while(node.getValue() == 0){
-            IntNode temp = predecessor(node);
-            removeFromEnd(node);
-            node = temp;
+    private void trimZerosFromEnd() {
+        while(_tail.getValue() == 0){
+            this.removeNodeFromEnd();
         }
     }
 
-    private void removeFromEnd(IntNode node){
-        this._tail = predecessor(node);
+    private void removeNodeFromEnd(){
+        IntNode temp = this._head;
 
-        _tail.setNext(null);
+        if(!empty()){
+            if(this.length() > 1){
+                while(temp.getNext().getNext() != null && temp.getNext() != null){
+                    temp = temp.getNext();
+                }
+                this._tail = temp;
+                temp.setNext(null);
+            }
+        }
     }
 
-    private void subtractionBorrowing(IntNode node) {
-        subtractionBorrowing(node, 0);
+    public IntNode getHead(){
+        return this._head;
     }
 
-    private void subtractionBorrowing(IntNode node, int count) {
-        if(node.getNext().getValue() > 0 || node.getNext() != null){
-            node.getNext().setValue(node.getNext().getValue() - 1);
+    public IntNode getTail(){
+        return this._tail;
+    }
+
+//    private void subtractionBorrowing(IntNode node, IntNode node2){
+//            while(node2 != null){
+//                if(node.getValue() - node2.getValue() < 0){
+//                    node.setValue(node.getValue() + 10);
+//                    subtractionBorrowing(node.getNext());
+//                }
+//                node = node.getNext();
+//                node2 = node2.getNext();
+//            }
+//    }
+
+    private void subtractionBorrowing(IntNode node, IntNode node2){
+        if(node2 == null){
+            return;
+        }
+        if(node.getValue() - node2.getValue() < 0){
             node.setValue(node.getValue() + 10);
+            subtractionBorrowing(node.getNext());
+        }
+        subtractionBorrowing(node.getNext(), node2.getNext());
+    }
+
+    private void subtractionBorrowing(IntNode node){
+        if(node == null){
+            return;
+        }
+        if(node.getValue() > 0){
+            node.setValue(node.getValue() -1);
             return;
         }
         node.setValue(node.getValue() + 10);
-        subtractionBorrowing(node.getNext(), ++count);
-        node.setValue(node.getValue() - count);
+        subtractionBorrowing(node.getNext());
+        node.setValue(node.getValue() - 1);
     }
 
-    private int whoIsBigger(BigNumber big1, BigNumber big2) {
-        IntNode ptr1 = big1._tail, ptr2 = big2._tail;
+    private int isBigger(BigNumber other){
+       IntNode thisPtr = this._head, otherPtr = other._head;
+       return isBigger(thisPtr, otherPtr);
+    }
 
-        do {
-            if (ptr1.getValue() > ptr2.getValue()) {
-                return 1;
-            } else if (ptr2.getValue() > ptr1.getValue()) {
-                return 2;
-            } else {
-                IntNode temp1 = big1._head;
-                IntNode temp2 = big2._head;
+    private int isBigger(IntNode ptr1, IntNode ptr2){
+        if (ptr1 == null && ptr2 == null) {
+            return 0;
+        }
+        if (ptr1 == null) {
+            return -1;
+        }
 
-                while (temp1.getNext() != ptr1 && temp2.getNext() != ptr2) {
-                    temp1 = temp1.getNext();
-                    temp2 = temp2.getNext();
-                }
-                ptr1 = temp1;
-                ptr2 = temp2;
-            }
-        } while (ptr1 != big1._head && ptr2 != big2._head);
-
-        if (ptr1.getValue() > ptr2.getValue()) {
+        if (ptr2 == null) {
             return 1;
-        } else if (ptr2.getValue() > ptr1.getValue()) {
-            return 2;
+        }
+
+        int restBigger = isBigger(ptr1.getNext(), ptr2.getNext());
+
+        if (restBigger == 1) {
+            return 1;
+        }
+
+        if (restBigger == -1) {
+            return -1;
+        }
+
+        if(ptr1.getValue() > ptr2.getValue()){
+            return 1;
+        }
+        if(ptr2.getValue() > ptr1.getValue()){
+            return -1;
         }
         return 0;
-    }
-
-    public IntNode predecessor(IntNode node) {
-        if(_head == null || _head == node) {
-            return null;
-        }
-
-        IntNode backPtr = _head;
-
-        while(backPtr.getNext() != null) {
-            if(backPtr.getNext() == node) {
-                return backPtr;
-            } else {
-                backPtr = backPtr.getNext();
-            }
-        }
-        return null;
-    }
-
-    private int sumOfDigits() {
-        IntNode ptr = _head;
-
-        int res = 0;
-
-        while (ptr != null) {
-            res += ptr.getValue();
-            ptr = ptr.getNext();
-        }
-        return res;
     }
 
     private int length() {
@@ -118,37 +130,14 @@ public class BigNumber {
         return res;
     }
 
-    private int numOfDigits(long num) {
-        if (num == 0) {
-            return 0;
-        }
-        return 1 + numOfDigits(num / 10);
-    }
-
     private void addToNextFreeSlot(int num) {
         IntNode newItem = new IntNode(num);
         if (empty()) {
             this._head = newItem;
             this._tail = this._head;
         } else {
-//            IntNode ptr = this._head;
-//            while (ptr.getNext() != null) {
-//                ptr = ptr.getNext();
-//            }
-//            ptr.setNext(newItem);
-
             _tail.setNext(newItem);
             _tail = _tail.getNext();
-        }
-    }
-
-    private void addToHead(IntNode node) {
-        if (_head == null) {
-            _head = node;
-        } else {
-            IntNode ptr = _head;
-            _head = node;
-            _head.setNext(ptr);
         }
     }
 
@@ -180,21 +169,16 @@ public class BigNumber {
         return node == null ? "" : toString(node.getNext()) + node.getValue();
     }
 
+    ///O(n)
     public int compareTo(BigNumber other) {
-        if (this.length() > other.length()) {
+        if (this.isBigger(other) == 1) {
             return 1;
-        } else if (this.length() < other.length()) {
-            return -1;
-        } else {
-            if (whoIsBigger(this, other) == 1) {
-                return 1;
-            } else if (whoIsBigger(this, other) == 2) {
-                return -1;
-            } else {
-                return 0;
-            }
         }
-    }
+        if (this.isBigger(other) == -1) {
+            return -1;
+        }
+        return 0;
+}
 
     /// O(n)
     public BigNumber addBigNumber(BigNumber other) {
@@ -240,6 +224,7 @@ public class BigNumber {
         return this.addBigNumber(temp);
     }
 
+    ///O(n)
     public BigNumber subtractBigNumber(BigNumber other) {
         BigNumber thisCopy = new BigNumber(this);
         BigNumber otherCopy = new BigNumber(other);
@@ -248,24 +233,22 @@ public class BigNumber {
 
         BigNumber res = new BigNumber();
 
-
+        ///O(n)
         if (other.compareTo(this) == 1) {
             thisPtr = otherCopy._head;
             otherPtr = thisCopy._head;
         } else if (other.compareTo(this) == 0) {
             return res;
         }
-
         res.removeZeroFromStart();
+
+        subtractionBorrowing(thisPtr, otherPtr);
 
         while(thisPtr != null){
             while(otherPtr != null){
                 int subtractionRes = thisPtr.getValue() - otherPtr.getValue();
-                if(subtractionRes < 0){
-                    subtractionBorrowing(thisPtr);
-                    subtractionRes = thisPtr.getValue() - otherPtr.getValue();
-                }
                 res.addToNextFreeSlot(subtractionRes);
+
                 thisPtr = thisPtr.getNext();
                 otherPtr = otherPtr.getNext();
             }
@@ -275,10 +258,25 @@ public class BigNumber {
             }
         }
 
-        ///TRIM ZEROS
-        res.trimZeros(res._tail);
-
+        ///TRIM ZEROS IF NEEDED
+        if (res._tail.getValue() == 0) {
+            res.trimZerosFromEnd();
+        }
         return res;
     }
+
+//    public BigNumber multBigNumber (BigNumber other){
+//        BigNumber thisCopy = new BigNumber(this);
+//        BigNumber otherCopy = new BigNumber(other);
+//
+//        IntNode thisPtr = thisCopy._head, otherPtr = otherCopy._head;
+//
+//        if(otherCopy.length() > thisCopy.length()){
+//            thisPtr = otherCopy._head;
+//            otherPtr = thisCopy._head;
+//        }
+//
+//
+//}
 }
 
