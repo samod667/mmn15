@@ -21,13 +21,34 @@ public class BigNumber {
         this._head = null;
     }
 
-    private void trimZerosFromEnd() {
-        while(_tail.getValue() == 0){
-            this.removeNodeFromEnd();
+    private BigNumber trimZerosFromEnd() {
+        IntNode headPtr = this._head;
+
+        BigNumber newBig = new BigNumber();
+        newBig.removeZeroFromStart();
+
+        while(headPtr != null){
+            newBig.addToStart(new IntNode(headPtr.getValue()));
+            headPtr = headPtr.getNext();
+            this.removeNodeFromHead();
         }
+
+        IntNode newBigHeadPtr = newBig._head;
+
+        while(newBigHeadPtr.getValue() == 0){
+            newBig.removeNodeFromHead();
+            newBigHeadPtr = newBig._head;
+        }
+
+        newBigHeadPtr = newBig._head;
+        while(newBigHeadPtr != null){
+            this.addToStart(new IntNode(newBigHeadPtr.getValue()));
+            newBigHeadPtr = newBigHeadPtr.getNext();
+        }
+        return this;
     }
 
-    private void removeNodeFromEnd(){
+    private void removeNodeFromTail(){
         IntNode temp = this._head;
 
         if(!empty()){
@@ -38,6 +59,34 @@ public class BigNumber {
                 this._tail = temp;
                 temp.setNext(null);
             }
+        }
+    }
+
+    private void removeNodeFromHead(){
+        if(length() == 1){
+            _head = null;
+        }
+        if(this.length() >= 2){
+            IntNode temp = this._head.getNext();
+            this._head = null;
+            _head = temp;
+        }
+    }
+
+    private void addToEnd(IntNode node){
+        IntNode temp = this._tail;
+
+        temp.setNext(node);
+        this._tail = node;
+    }
+
+    private void addToStart(IntNode node){
+        if(empty()){
+            this._head = node;
+        } else {
+            IntNode temp = this._head;
+            this._head = node;
+            node.setNext(temp);
         }
     }
 
