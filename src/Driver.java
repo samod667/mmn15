@@ -36,16 +36,20 @@ public class Driver {
 //
         System.out.println("\n************************ MMN 15 TEST END **************************");
 
-        IntNode num1 = new IntNode(300);
-        IntNode num2 = new IntNode(25);
+        BigNumber big1 = new BigNumber();
+//        BigNumber big2 = new BigNumber(num2.getValue());
 
-        BigNumber big1 = new BigNumber(num1.getValue());
-        BigNumber big2 = new BigNumber(num2.getValue());
 
-        BigNumber big3 = new BigNumber(15929);
-        BigNumber big4 = new BigNumber(18129);
+        BigNumber big3 = new BigNumber(44);
+        BigNumber big4 = new BigNumber(44);
 
-        System.out.println(big3.subtractBigNumber(big4));
+        System.out.println(big3.multBigNumber(big4));
+//        System.out.println(big3.addBigNumber(big4));
+
+        ////////////////
+
+
+
 
     }
 }
