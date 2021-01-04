@@ -7,16 +7,6 @@ public class BigNumber {
         return this._head == null;
     }
 
-    private void printList() {
-        IntNode ptr = _head;
-
-        while (ptr != null) {
-            System.out.print(ptr.getValue());
-            ptr = ptr.getNext();
-        }
-        System.out.println("");
-    }
-
     private void removeZeroFromStart() {
         this._head = null;
     }
@@ -47,20 +37,6 @@ public class BigNumber {
         }
     }
 
-    private void removeNodeFromTail() {
-        IntNode temp = this._head;
-
-        if (!empty()) {
-            if (this.length() > 1) {
-                while (temp.getNext().getNext() != null && temp.getNext() != null) {
-                    temp = temp.getNext();
-                }
-                this._tail = temp;
-                temp.setNext(null);
-            }
-        }
-    }
-
     private void removeNodeFromHead() {
         if (length() == 1) {
             _head = null;
@@ -72,13 +48,6 @@ public class BigNumber {
         }
     }
 
-    private void addToEnd(IntNode node) {
-        IntNode temp = this._tail;
-
-        temp.setNext(node);
-        this._tail = node;
-    }
-
     private void addToStart(IntNode node) {
         if (empty()) {
             this._head = node;
@@ -88,25 +57,6 @@ public class BigNumber {
             node.setNext(temp);
         }
     }
-
-    public IntNode getHead() {
-        return this._head;
-    }
-
-    public IntNode getTail() {
-        return this._tail;
-    }
-
-//    private void subtractionBorrowing(IntNode node, IntNode node2){
-//            while(node2 != null){
-//                if(node.getValue() - node2.getValue() < 0){
-//                    node.setValue(node.getValue() + 10);
-//                    subtractionBorrowing(node.getNext());
-//                }
-//                node = node.getNext();
-//                node2 = node2.getNext();
-//            }
-//    }
 
     private void subtractionBorrowing(IntNode node, IntNode node2) {
         if (node2 == null) {
@@ -130,6 +80,54 @@ public class BigNumber {
         node.setValue(node.getValue() + 10);
         subtractionBorrowing(node.getNext());
         node.setValue(node.getValue() - 1);
+    }
+
+    private BigNumber multiHelper(IntNode thisPtr, IntNode otherPtr, BigNumber otherCopy, BigNumber thisCopy, BigNumber result) {
+        ///Outer while loop
+        while (otherPtr != null) {
+            ///Declaring a new addition to sum value
+            BigNumber additionNumber = new BigNumber();
+            additionNumber.removeZeroFromStart();
+
+            ///Adding zeros to the addition variable if needed
+            if (otherPtr != otherCopy._head) {
+                IntNode temp = otherCopy._head;
+
+                while (temp != otherPtr) {
+                    additionNumber.addToNextFreeSlot(0);
+                    temp = temp.getNext();
+                }
+            }
+            int firstD = 0;
+            boolean borrowing = false;
+
+            ///Inner while loop
+            while (thisPtr != null) {
+                int ptrResult = (otherPtr.getValue() * thisPtr.getValue()) + firstD;
+                if (biggerThan9(ptrResult)) {
+                    borrowing = true;
+                }
+
+                if (borrowing) {
+                    if (thisPtr.getNext() == null) {
+                        additionNumber.disassembleNumber(ptrResult);
+                    } else {
+                        additionNumber.addToNextFreeSlot(ptrResult % 10);
+                        firstD = ptrResult / 10;
+                    }
+                } else {
+                    additionNumber.disassembleNumber(ptrResult);
+                    firstD = 0;
+                }
+                thisPtr = thisPtr.getNext();
+                borrowing = false;
+            }
+
+            result = result.addBigNumber(additionNumber);
+            thisPtr = thisCopy._head;
+            otherPtr = otherPtr.getNext();
+        }
+        return result;
     }
 
     private int isBigger(BigNumber other) {
@@ -189,6 +187,60 @@ public class BigNumber {
         }
     }
 
+    private void disassembleNumber(int num) {
+        if (num > 0) {
+            while (num > 0) {
+                addToNextFreeSlot(num % 10);
+                num /= 10;
+            }
+        }
+    }
+
+    private void addNumber(IntNode thisPtr, IntNode otherPtr, BigNumber res) {
+        while (thisPtr != null) {
+            while (otherPtr != null) {
+                int additionResult = thisPtr.getValue() + otherPtr.getValue();
+                if (additionResult >= 10 && thisPtr.getNext() != null) {
+                    res.addToNextFreeSlot(additionResult % 10);
+                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
+                } else {
+                    res.addToNextFreeSlot(additionResult);
+                }
+                thisPtr = thisPtr.getNext();
+                otherPtr = otherPtr.getNext();
+            }
+            if (thisPtr != null) {
+                if (thisPtr.getValue() >= 10 && thisPtr.getNext() != null) {
+                    res.addToNextFreeSlot(thisPtr.getValue() % 10);
+                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
+                } else {
+                    res.addToNextFreeSlot(thisPtr.getValue());
+                }
+                thisPtr = thisPtr.getNext();
+            }
+        }
+    }
+
+    private void subtractNumber(IntNode thisPtr, IntNode otherPtr, BigNumber res) {
+        while (thisPtr != null) {
+            while (otherPtr != null) {
+                int subtractionRes = thisPtr.getValue() - otherPtr.getValue();
+                res.addToNextFreeSlot(subtractionRes);
+
+                thisPtr = thisPtr.getNext();
+                otherPtr = otherPtr.getNext();
+            }
+            if (thisPtr != null) {
+                res.addToNextFreeSlot(thisPtr.getValue());
+                thisPtr = thisPtr.getNext();
+            }
+        }
+    }
+
+    private boolean biggerThan9(int num) {
+        return num > 9;
+    }
+
     public BigNumber() {
         this._head = new IntNode(0);
         this._tail = _head;
@@ -242,28 +294,9 @@ public class BigNumber {
             thisPtr = otherCopy._head;
             otherPtr = thisCopy._head;
         }
-        while (thisPtr != null) {
-            while (otherPtr != null) {
-                int additionResult = thisPtr.getValue() + otherPtr.getValue();
-                if (additionResult >= 10 && thisPtr.getNext() != null) {
-                    res.addToNextFreeSlot(additionResult % 10);
-                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
-                } else {
-                    res.addToNextFreeSlot(additionResult);
-                }
-                thisPtr = thisPtr.getNext();
-                otherPtr = otherPtr.getNext();
-            }
-            if (thisPtr != null) {
-                if (thisPtr.getValue() >= 10 && thisPtr.getNext() != null) {
-                    res.addToNextFreeSlot(thisPtr.getValue() % 10);
-                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
-                } else {
-                    res.addToNextFreeSlot(thisPtr.getValue());
-                }
-                thisPtr = thisPtr.getNext();
-            }
-        }
+
+        addNumber(thisPtr, otherPtr, res);
+
         return res;
     }
 
@@ -293,19 +326,7 @@ public class BigNumber {
 
         subtractionBorrowing(thisPtr, otherPtr);
 
-        while (thisPtr != null) {
-            while (otherPtr != null) {
-                int subtractionRes = thisPtr.getValue() - otherPtr.getValue();
-                res.addToNextFreeSlot(subtractionRes);
-
-                thisPtr = thisPtr.getNext();
-                otherPtr = otherPtr.getNext();
-            }
-            if (thisPtr != null) {
-                res.addToNextFreeSlot(thisPtr.getValue());
-                thisPtr = thisPtr.getNext();
-            }
-        }
+        subtractNumber(thisPtr, otherPtr, res);
 
         ///TRIM ZEROS IF NEEDED
         if (res._tail.getValue() == 0) {
@@ -319,55 +340,17 @@ public class BigNumber {
         BigNumber thisCopy = new BigNumber(this);
         BigNumber otherCopy = new BigNumber(other);
 
+        if (otherCopy.length() > thisCopy.length()) {
+            thisCopy = other;
+            otherCopy = this;
+        }
+
         IntNode thisPtr = thisCopy._head, otherPtr = otherCopy._head;
 
-        if (otherCopy.length() > thisCopy.length()) {
-            thisPtr = otherCopy._head;
-            otherPtr = thisCopy._head;
-        }
-
+        ///Initialize a new result object to 0
         BigNumber result = new BigNumber();
 
-        ///Outer while loop
-        while (otherPtr != null) {
-            ///Declaring a new addition to sum value
-            BigNumber additionNumber = new BigNumber();
-            additionNumber.removeZeroFromStart();
-
-            ///Adding zeros to the addition variable if needed
-            IntNode temp = otherCopy._head;
-            if (otherPtr != temp) {
-                while (temp != otherPtr) {
-                    additionNumber.addToNextFreeSlot(0);
-                    temp = temp.getNext();
-                }
-            }
-            int firstD = 0;
-            boolean borrowing = false;
-            ///Inner while loop
-            while (thisPtr != null) {
-                int ptrResult = otherPtr.getValue() * thisPtr.getValue();
-                if(ptrResult > 9 && thisPtr.getNext() != null){
-                    borrowing = true;
-                }
-                if (borrowing) {
-                    additionNumber.addToNextFreeSlot(ptrResult % 10 + firstD);
-                    firstD = ptrResult / 10;
-                } else {
-                    additionNumber.addToNextFreeSlot(ptrResult + firstD);
-                    firstD = 0;
-                }
-                thisPtr = thisPtr.getNext();
-                borrowing = false;
-            }
-
-            result = result.addBigNumber(additionNumber);
-            System.out.println("number that was added to sum --> " + additionNumber);
-            System.out.println("sum is ---> " + result);
-            thisPtr = thisCopy._head;
-            otherPtr = otherPtr.getNext();
-        }
-        return result;
+        return multiHelper(thisPtr, otherPtr, otherCopy, thisCopy, result);
     }
 
 }

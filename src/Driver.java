@@ -30,26 +30,21 @@ public class Driver {
         int comp = b2.compareTo(b3);
         System.out.println(comp);
 
-//        System.out.println("\n****** b7 = b2.multBigNumber(b4) = ");
-//        BigNumber b7 = b2.multBigNumber(b4);
-//        System.out.println(b7);
-//
+        System.out.println("\n****** b7 = b2.multBigNumber(b4) = ");
+        BigNumber b7 = b2.multBigNumber(b4);
+        System.out.println(b7);
+
         System.out.println("\n************************ MMN 15 TEST END **************************");
 
         BigNumber big1 = new BigNumber();
-//        BigNumber big2 = new BigNumber(num2.getValue());
 
-
-        BigNumber big3 = new BigNumber(44);
-        BigNumber big4 = new BigNumber(44);
+        BigNumber big3 = new BigNumber(98765432159L);
+        BigNumber big4 = new BigNumber(999985);
+//         big4 = big4.addBigNumber(big3);
+//        System.out.println(big3.multBigNumber(big4));
 
         System.out.println(big3.multBigNumber(big4));
-//        System.out.println(big3.addBigNumber(big4));
 
         ////////////////
-
-
-
-
     }
 }
