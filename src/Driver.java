@@ -39,11 +39,13 @@ public class Driver {
         BigNumber big1 = new BigNumber();
 
         BigNumber big3 = new BigNumber(98765432159L);
-        BigNumber big4 = new BigNumber(999985);
-//         big4 = big4.addBigNumber(big3);
-//        System.out.println(big3.multBigNumber(big4));
+        BigNumber big4 = new BigNumber(12345);
 
-        System.out.println(big3.multBigNumber(big4));
+        BigNumber big5 = new BigNumber(big4);
+
+        System.out.println(big4);
+        System.out.println(big5);
+
 
         ////////////////
     }
