@@ -36,15 +36,15 @@ public class Driver {
 
         System.out.println("\n************************ MMN 15 TEST END **************************");
 
-        BigNumber big1 = new BigNumber();
+        BigNumber big1 = new BigNumber(1392673598376592385L);
 
-        BigNumber big3 = new BigNumber(98765432159L);
-        BigNumber big4 = new BigNumber(12345);
+        big1 = big1.addLong(2398576239856239058L);
 
-        BigNumber big5 = new BigNumber(big4);
+        big1 = big1.addBigNumber(big1);
+//        big1 = big1.addBigNumber(big1);
+        big1 = big1.multBigNumber(big1);
 
-        System.out.println(big4);
-        System.out.println(big5);
+        System.out.println(big1);
 
 
         ////////////////

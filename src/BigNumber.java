@@ -13,17 +13,15 @@ public class BigNumber {
 
     //Declaring variables which will hold an object that will point to the start and the end of the list
     private IntNode _head;
-    private IntNode _tail;
 
     /**
      * Initiates a BigNumber object containing one node with default value 0
      */
     public BigNumber() {
         this._head = new IntNode(0);
-        this._tail = _head;
     }
 
-    /**
+ /**
      * Instantiates a BigNumber objects with the values of the parameter num
      * @param num = the number which will be represented as a new BigNumber list
      */
@@ -184,9 +182,7 @@ public class BigNumber {
         subtractNumber(thisPtr, otherPtr, res);
 
         ///In case there are 0 that need to be trimmed this private recursive helper method will take care of it --> O(n)
-        if (res._tail.getValue() == 0) {
-            res.trimZerosFromEnd();
-        }
+        res.trimZerosFromEnd();
         //Return the new result object
         return res;
     }
@@ -431,10 +427,13 @@ public class BigNumber {
         IntNode newItem = new IntNode(num);
         if (empty()) {
             this._head = newItem;
-            this._tail = this._head;
+
         } else {
-            _tail.setNext(newItem);
-            _tail = _tail.getNext();
+            IntNode tmp = this._head;
+            while(tmp.getNext() != null){
+                tmp = tmp.getNext();
+            }
+            tmp.setNext(new IntNode(num));
         }
     }
 
