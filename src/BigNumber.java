@@ -10,47 +10,68 @@
  * @version Jan 4th
  */
 public class BigNumber {
-
     //Declaring variables which will hold an object that will point to the start and the end of the list
     private IntNode _head;
 
     /**
-     * Initiates a BigNumber object containing one node with default value 0
+     * Initiates a BigNumber object containing one node with the the value 0.
+     * Runtime Complexity: O(1)
+     * Space Complexity: O(1)
      */
     public BigNumber() {
         this._head = new IntNode(0);
     }
 
- /**
-     * Instantiates a BigNumber objects with the values of the parameter num
-     * @param num = the number which will be represented as a new BigNumber list
+    /**
+     * Initiates a BigNumber object from a long type number. List head will be the singles.
+     *
+     * Runtime Complexity: O(log n) --> Dividing the number by 10 for each iteration
+     * Space Complexity: O(n) --> Declaring a new node for every iteration within the while loop
+     * @param num = the long number to be converted into a BigNumber list
      */
     public BigNumber(long num) {
-        // A loop which will take the last digit of the number, use a helper function to add it to the list and remove last digit from param num
+        this._head = new IntNode((int) (num % 10));
+        num /= 10;
+
+        IntNode ptr = this._head;
+
         while (num > 0) {
-            addToNextFreeSlot((int) (num % 10));
+            IntNode node = new IntNode((int) (num % 10));
+            ptr.setNext(node);
+            ptr = ptr.getNext();
             num /= 10;
         }
     }
 
     /**
-     * Instantiates a new BigNumber with the identical values and nodes from Other BigNumber
-     * @param other = the other BigNumber which values will be copied from for the new BigNumber
+     * Initiates a BigNumber object from an other  BigNumber. The constructor will take the values from the other BigNumber and will create
+     * new Nodes with the same value and with the same order as the other BigNumber.
+     *
+     * Runtime Complexity: O(n) --> Iterating once over the other BigNumber
+     * Space Complexity: O(n) --> Creating a new node for each iteration
+     * @param other = the other BigNumber to copy the list values from
      */
     public BigNumber(BigNumber other) {
-        // ptr variable will point to the Other BigNumber first value
-        IntNode ptr = other._head;
-        //While loop will loop through the Other BigNumber, copy its node value,
-        // and will create new node for the new BigNumber with the same values as the Other BigNumber (using a helper function)
-        while (ptr != null) {
-            addToNextFreeSlot(ptr.getValue());
-            ptr = ptr.getNext();
+        IntNode otherPtr = other._head;
+
+        this._head = new IntNode(otherPtr.getValue());
+
+        IntNode thisPtr = _head;
+        otherPtr = otherPtr.getNext();
+
+        while (otherPtr != null) {
+            thisPtr.setNext(new IntNode(otherPtr.getValue()));
+            thisPtr = thisPtr.getNext();
+            otherPtr = otherPtr.getNext();
         }
     }
 
     /**
      * To string method is a recursive to string which will print the number saved in BigNumber
-     * @return a string representing the number saved in the list
+     *
+     * Runtime Complexity: O(n)
+     * Space Complexity: O(1)
+     * @return a string representing the number saved in the list (in the correct order)
      */
     public String toString() {
         return toString(_head);
@@ -62,16 +83,12 @@ public class BigNumber {
     }
 
     /**
-     * Compare two BigNumber objects and check which is the bigger one. This function is recursive, and will use the private helper function isBigger
+     * Compare two BigNumber objects and check which is the bigger one. This function is recursive, and will use the private helper function isBigger.
      *
-     * Runtime Complexity:
-     * O(n)
-     *
-     * Space Complexity:
-     * O(1)
-     *
+     * Runtime Complexity: O(n)
+     * Space Complexity: O(1)
      * @param other the Other BigNumber to check its size against
-     * @return 1 if the this BigNumber is bigger than Other, -1 if Other BigNumber is bigger, or 0 if they are equal
+     * @return 1 if the this BigNumber is bigger than Other, -1 if Other BigNumber is bigger, or 0 if numbers are equal
      */
     public int compareTo(BigNumber other) {
         if (this.isBigger(other) == 1) {
@@ -87,12 +104,8 @@ public class BigNumber {
      * A function that will do an addition of two BigNumber objects and will return a new BigNumber object with the result.
      * This function is using a private helper function addNumber!
      *
-     * Runtime Complexity:
-     * O(1) + O(n) + O(n) = O(n)
-     *
-     * Space Complexity:
-     * O(1)
-     *
+     * Runtime Complexity: O(n) --> Iterating one time over the bigger number / if numbers are equal iterating once over either of the two
+     * Space Complexity: O(n) --> Inserting a new node with the addition result for each iteration
      * @param other the Other BigNumber to add to this BigNumber
      * @return a new BigNumber object which will contain the result of the addition of the two BigNumber objects
      */
@@ -105,51 +118,92 @@ public class BigNumber {
 
         //Declaring the new BigNumber which will hold the result and will eventually be returned
         BigNumber res = new BigNumber();
-        //Removing the initial 0 value which was created with the constructor --> O(1)
-        res.removeZeroFromStart();
 
-        //Checking which BigNumber has more digits (to avoid nullExceptions errors), a private method -- > O(n)
-        if (other.length() > this.length()) {
-            thisPtr = otherCopy._head;
-            otherPtr = thisCopy._head;
-        }
+        //Using the private method addNumber which will handle the digit calculations
+        addNumber(thisPtr, otherPtr, res);  //--> O(n)
 
-        //Using the private method addNumber which will handle the calculations --> O(n)
-        addNumber(thisPtr, otherPtr, res);
-
-        //Return the res object which will hold the result
+        //Return the res object which holds the result calling the addNumber function
         return res;
     }
 
     /**
-     * Get the addition of a BigNumber with a other long num
+     * Get the addition of a BigNumber with a other long num.
      *
-     * Runtime Complexity:
-     * O(n)
-     *
-     * Space Complexity:
-     * O(1)
-     *
+     * Runtime Complexity: O(n) --> iterating one time over the bigger number / if numbers are equal iterating once over either of the two
+     * Space Complexity: O(n) --> Inserting a new node with the addition result for each iteration
      * @param num the other long number to add for the BigNumber object
      * @return A new BigNumber with the result of the addition of the long num and the BigNumber object
      */
     public BigNumber addLong(long num) {
-        //Using constructor to create another BigNumber object from the long num
-        BigNumber temp = new BigNumber(num);
+        //Creating a this object copy
+        BigNumber thisCopy = new BigNumber(this);
+        //Creating a pointer for this object
+        IntNode thisPtr = thisCopy._head;
 
-        //Using the addBigNumber method which calculates the addition of two BigNumber objects and returns a new BigNumber with the result --> O(n)
-        return this.addBigNumber(temp);
+        //Creating a new result object which will hold the addition result
+        BigNumber result = new BigNumber();
+        IntNode resPtr = result._head;
+
+        //This variable will hold the remainder
+        int remainder = 0;
+        //Loop on both numbers
+        while (num > 0 && thisPtr != null) {
+            int res = (thisPtr.getValue() + (int) (num % 10)) + remainder;
+            if (res > 9 && thisPtr.getNext() != null) {
+                result.addToNextSlot(resPtr, res % 10);
+                remainder = 1;
+            } else if(res > 9 && num > 10){
+                result.addToNextSlot(resPtr, res % 10);
+                remainder = 1;
+            } else {
+                result.addToNextSlot(resPtr, res);
+                remainder = 0;
+            }
+            thisPtr = thisPtr.getNext();
+            resPtr = resPtr.getNext();
+            num /= 10;
+        }
+        //If this BigNumber is bigger
+        while (thisPtr != null) {
+            int res = (thisPtr.getValue() + remainder);
+            if (res > 9 && thisPtr.getNext() != null) {
+                result.addToNextSlot(resPtr, res % 10);
+                remainder = 1;
+            } else if (res > 9) {
+                result.addToNextSlot(resPtr, res);
+                remainder = 1;
+            } else {
+                result.addToNextSlot(resPtr, res);
+                remainder = 0;
+            }
+            thisPtr = thisPtr.getNext();
+            resPtr = resPtr.getNext();
+        }
+
+        //If long number is bigger
+        while(num > 0){
+            int res = (int)(num % 10) + remainder;
+             if(res > 9 && num >= 10){
+                 result.addToNextSlot(resPtr, res % 10);
+             } else {
+                 result.addToNextSlot(resPtr, res);
+                 remainder = 0;
+             }
+             resPtr = resPtr.getNext();
+             num /= 10;
+        }
+        //Remove initial 0
+        result.removeNodeFromHead();    // --> O(1)
+
+        //Return result object
+        return result;
     }
 
     /**
-     * A subtraction calculation over two BigNumber objects
+     * A subtraction calculation over two BigNumber objects. Result cannot be less than 0. If result is less than 0 numbers will swap places in the subtraction order.
      *
-     * Runtime Complexity:
-     * O(n) + O(1) + O(n) + O(n) + O(n) = O(n)
-     *
-     * Space Complexity:
-     * O(1)
-     *
+     * Runtime Complexity: O(n) + O(1) + O(n) + O(n) + O(n) = O(n)
+     * Space Complexity: O(n) --> Inserting a new node with the subtraction result for each iteration
      * @param other The other BigNumber to subtract
      * @return a new BigNumber object with the value of the subtraction of this BigNumber and other BigNumber
      */
@@ -163,39 +217,36 @@ public class BigNumber {
         //Initiating a new BigNumber object which will hold the result of subtraction
         BigNumber res = new BigNumber();
 
-        //Using the compareTo method to check which object is bigger (to avoid result that are smaller than 0) --> O(n)
+        //Using the compareTo method to check which object is bigger (to avoid result that are smaller than 0)
         //If other number is bigger --> switch variables
-        if (other.compareTo(this) == 1) {
+        if (other.compareTo(this) == 1) {   // --> O(n)
             thisPtr = otherCopy._head;
             otherPtr = thisCopy._head;
         } else if (other.compareTo(this) == 0) {
-            //If numbers are equal - return the new result object which its value is 0 (because of the empty constructor)
+            //If numbers are equal - return the new result object which its value is 0
             return res;
         }
-        //Remove 0 from the res variable --> O(1)
-        res.removeZeroFromStart();
 
-        //This is a private helper function that will change the values stored in the nodes by in case borrowing is needed --> O(n)
-        subtractionBorrowing(thisPtr, otherPtr);
+        //This is a private helper function that will change the values stored in the nodes in case borrowing is needed
+        subtractionBorrowing(thisPtr, otherPtr);    //--> O(n)
 
-        //This is a private helper method that will iterate through the bigger number one time and will only subtract the values of the two BigNumber's --> O(n)
-        subtractNumber(thisPtr, otherPtr, res);
+        //This is a private helper method that will iterate through the bigger number one time and will subtract the values of the two BigNumber's
+        subtractNumber(thisPtr, otherPtr, res); // --> O(n)
 
-        ///In case there are 0 that need to be trimmed this private recursive helper method will take care of it --> O(n)
-        res.trimZerosFromEnd();
+        ///In case there are 0 that need to be trimmed this private recursive helper method will take care of it
+        res.trimZerosFromEnd();     //--> O(n)
+        res.removeNodeFromHead();   //-->O(1)
+
         //Return the new result object
         return res;
     }
 
     /**
-     * A multiplication method on two BigNumber objects
+     * A multiplication method on two BigNumber objects.
      *
      * Runtime Complexity:
-     * O(n) + O(n^2) = O(n^2)
-     *
-     * Space Complexity:
-     * O(n)
-     *
+     * O(n) + O(n * m) = O(n^2) (n == other Bignumber length | m == this BigNumber length)
+     * Space Complexity: O(n) --> Inserting a new node with the multiplication result for each iteration
      * @param other the other BigNumber to multiply with
      * @return a new BigNumber object which will hold the result for the multiplication calculation of the two BigNumbers
      */
@@ -219,7 +270,7 @@ public class BigNumber {
         return multiHelper(thisPtr, otherPtr, otherCopy, thisCopy, result);
     }
 
-    ///// PRIVATE HELPER METHODS //////////////////////////
+    ////////////////////////// HELPER METHODS //////////////////////////        //////////////////////////      //////////////////////////      //////////////////////////
 
     //Check if BigNumber is empty --> O(1)
     private boolean empty() {
@@ -239,7 +290,7 @@ public class BigNumber {
         newBig.removeZeroFromStart();
 
         while (headPtr != null) {
-            newBig.addToStart(new IntNode(headPtr.getValue()));
+            newBig.addToHead(new IntNode(headPtr.getValue()));
             headPtr = headPtr.getNext();
             this.removeNodeFromHead();
         }
@@ -253,7 +304,7 @@ public class BigNumber {
 
         newBigHeadPtr = newBig._head;
         while (newBigHeadPtr != null) {
-            this.addToStart(new IntNode(newBigHeadPtr.getValue()));
+            this.addToHead(new IntNode(newBigHeadPtr.getValue()));
             newBigHeadPtr = newBigHeadPtr.getNext();
         }
     }
@@ -271,7 +322,7 @@ public class BigNumber {
     }
 
     //Add node to start --> O(1)
-    private void addToStart(IntNode node) {
+    private void addToHead(IntNode node) {
         if (empty()) {
             this._head = node;
         } else {
@@ -294,7 +345,7 @@ public class BigNumber {
         subtractionBorrowing(node.getNext(), node2.getNext());
     }
 
-    //A overloading subtraction method that will handle and change the values of the BigNumber if borrowing is needed
+    //A overloading subtraction method that will handle and change the values of the BigNumber if borrowing is needed --> O(n)
     private void subtractionBorrowing(IntNode node) {
         if (node == null) {
             return;
@@ -310,14 +361,18 @@ public class BigNumber {
 
     //A function that will Iterate once through the bigger number from the subtraction method and will subtract the values --> O(n)
     private void subtractNumber(IntNode thisPtr, IntNode otherPtr, BigNumber res) {
+        IntNode resPtr = res._head;
+
         while (thisPtr != null) {
             while (otherPtr != null) {
-                res.addToNextFreeSlot((thisPtr.getValue() - otherPtr.getValue()));
+                res.addToNextSlot(resPtr, (thisPtr.getValue() - otherPtr.getValue()));
+                resPtr = resPtr.getNext();
                 thisPtr = thisPtr.getNext();
                 otherPtr = otherPtr.getNext();
             }
             if (thisPtr != null) {
-                res.addToNextFreeSlot(thisPtr.getValue());
+                res.addToNextSlot(resPtr, thisPtr.getValue());
+                resPtr = resPtr.getNext();
                 thisPtr = thisPtr.getNext();
             }
         }
@@ -330,15 +385,13 @@ public class BigNumber {
             ///Declaring a new addition to sum object
             BigNumber additionNumber = new BigNumber();
             //O(1)
-            additionNumber.removeZeroFromStart();
-
+//            additionNumber.removeZeroFromStart();
+            IntNode additionPtr = additionNumber._head;
             //Add zeros if needed
             if (otherPtr != otherCopy._head) {
                 IntNode temp = otherCopy._head;
-
                 while (temp != otherPtr) {
-                    //O(1)
-                    additionNumber.addToNextFreeSlot(0);
+                    additionNumber.addToHead(new IntNode(0));
                     temp = temp.getNext();
                 }
             }
@@ -349,26 +402,26 @@ public class BigNumber {
             ///Inner while loop
             while (thisPtr != null) {
                 int ptrResult = (otherPtr.getValue() * thisPtr.getValue()) + firstD;
-                if (biggerThan9(ptrResult)) {
+                if (ptrResult > 9) {
                     borrowing = true;
                 }
-
                 if (borrowing) {
                     if (thisPtr.getNext() == null) {
-                        additionNumber.disassembleNumber(ptrResult);
+                        additionNumber.disassembleNumber(additionPtr, ptrResult);
                     } else {
-                        additionNumber.addToNextFreeSlot(ptrResult % 10);
-                        firstD = ptrResult / 10;
+                        additionNumber.addToNextSlot(additionPtr, ptrResult % 10);
+                        firstD = (ptrResult / 10);
                     }
                 } else {
-                    additionNumber.disassembleNumber(ptrResult);
+                    additionNumber.addToNextSlot(additionPtr, ptrResult);
                     firstD = 0;
                 }
+                additionPtr = additionPtr.getNext();
                 thisPtr = thisPtr.getNext();
                 borrowing = false;
             }
-
-            result = result.addBigNumber(additionNumber); //O(n)
+            additionNumber.removeNodeFromHead();
+            result = result.addBigNumber(additionNumber);   //--> O(n)
             thisPtr = thisCopy._head;
             otherPtr = otherPtr.getNext();
         }
@@ -380,6 +433,7 @@ public class BigNumber {
         IntNode thisPtr = this._head, otherPtr = other._head;
         return isBigger(thisPtr, otherPtr);
     }
+
     //isBigger helper method - checking recursively which values are bigger from this & other BigNumber --> O(n)
     private int isBigger(IntNode ptr1, IntNode ptr2) {
         if (ptr1 == null && ptr2 == null) {
@@ -423,63 +477,82 @@ public class BigNumber {
 
     //Creates a new node with the value num and adds value num to the next free slot available (the end) in the list
     //If list is empty than add to head --> O(1)
-    private void addToNextFreeSlot(int num) {
+    private void addToNextSlot(IntNode node, int num) {
         IntNode newItem = new IntNode(num);
         if (empty()) {
-            this._head = newItem;
-
+            _head = newItem;
         } else {
-            IntNode tmp = this._head;
-            while(tmp.getNext() != null){
-                tmp = tmp.getNext();
-            }
-            tmp.setNext(new IntNode(num));
+            node.setNext(newItem);
         }
     }
 
-    //take a numb and add its digits separately to a BigNumber
-    private void disassembleNumber(int num) {
+    //take a numb and add its digits separately to a BigNumber --> O(log n)
+    private void disassembleNumber(IntNode node, int num) {
         if (num > 0) {
             while (num > 0) {
-                addToNextFreeSlot(num % 10);
+                addToNextSlot(node, (num % 10));
                 num /= 10;
+                node = node.getNext();
             }
         }
     }
 
-    //A private method to handle BigNumber addition calculations --> O(n) (One iteration over the BigNumber)
+    //A private method to handle BigNumber addition calculations
+    //Runtime complexity: O(n) + O(n) + O(1) + O(1) + O(1) = O(n)
+    //Space Complexity: O(n) --> Adding a new node for the result object for each iteration
     private void addNumber(IntNode thisPtr, IntNode otherPtr, BigNumber res) {
-        //While loop on the first BigNumber
-        while (thisPtr != null) {
-            //While loop on the second BigNumber
-            while (otherPtr != null) {
-                //Add the two digits and addition to the next item in list if needed
-                if ((thisPtr.getValue() + otherPtr.getValue()) >= 10 && thisPtr.getNext() != null) {
-                    res.addToNextFreeSlot((thisPtr.getValue() + otherPtr.getValue()) % 10);
-                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
-                } else {
-                    res.addToNextFreeSlot((thisPtr.getValue() + otherPtr.getValue()));
-                }
-                //Continue with the next values in the list
-                thisPtr = thisPtr.getNext();
-                otherPtr = otherPtr.getNext();
+        IntNode resPtr = res._head;
+
+        int remainder = 0;
+        //While loop on until thisPtr or otherPtr is null
+        while(thisPtr != null && otherPtr != null){
+            int digitAdditionRes = (thisPtr.getValue() + otherPtr.getValue()) + remainder;
+            if (digitAdditionRes > 9 && thisPtr.getNext() != null) {
+                res.addToNextSlot(resPtr, digitAdditionRes % 10);   //addToNextFreeSlot = O(n)
+                remainder = 1;
+            } else if(digitAdditionRes > 9 && otherPtr.getNext() != null){
+                res.addToNextSlot(resPtr, digitAdditionRes % 10);
+                remainder = 1;
+            } else {
+                res.addToNextSlot(resPtr, digitAdditionRes);
+                remainder = 0;
             }
-            if (thisPtr != null) {
-                if (thisPtr.getValue() >= 10 && thisPtr.getNext() != null) {
-                    res.addToNextFreeSlot(thisPtr.getValue() % 10);
-                    thisPtr.getNext().setValue(thisPtr.getNext().getValue() + 1);
-                } else {
-                    res.addToNextFreeSlot(thisPtr.getValue());
-                }
-                thisPtr = thisPtr.getNext();
-            }
+            thisPtr = thisPtr.getNext();
+            otherPtr = otherPtr.getNext();
+            resPtr = resPtr.getNext();
         }
-    }
 
-    //If number is bigger than 9
-    private boolean biggerThan9(int num) {
-        return num > 9;
-    }
+        ///If thisNumber was bigger than other BigNumber
+        while(thisPtr != null){
+            int digitAdditionRes = (thisPtr.getValue() + remainder);
+            if (digitAdditionRes > 9 && thisPtr.getNext() != null) {
+                res.addToNextSlot(resPtr, digitAdditionRes % 10);
+                remainder = 1;
+            } else if (digitAdditionRes > 9) {
+                res.addToNextSlot(resPtr, digitAdditionRes);
+                remainder = 1;
+            } else {
+                res.addToNextSlot(resPtr, digitAdditionRes);
+                remainder = 0;
+            }
+            thisPtr = thisPtr.getNext();
+            resPtr = resPtr.getNext();
+        }
 
+        //If other BigNumber was bigger than this BigNumber
+        while(otherPtr != null){
+            int digitAdditionRes = otherPtr.getValue() + remainder;
+            if(digitAdditionRes > 9 && otherPtr.getNext() != null){
+                res.addToNextSlot(resPtr, digitAdditionRes % 10);
+            } else {
+                res.addToNextSlot(resPtr, digitAdditionRes);
+                remainder = 0;
+            }
+            resPtr = resPtr.getNext();
+            otherPtr = otherPtr.getNext();
+        }
+        //Remove initial 0 from head
+        res.removeNodeFromHead(); //---> O(1)
+    }
 }
 
